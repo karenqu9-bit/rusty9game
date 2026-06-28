@@ -1,37 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Tuanjie WebGL Player | My project (1)</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
+    <link rel="stylesheet" href="TemplateData/style.css" />
+
+    <!-- 【新增】强制全屏样式，解决黑屏区域鼠标问题和横屏缩放 -->
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        overflow: hidden; /* 禁止滚动 */
+        touch-action: none; /* 禁止手机触摸缩放/拖动 */
+      }
+      #tuanjie-container,
+      #tuanjie-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+      }
+      /* 隐藏底部的 WebGL Logo 和标题，节省手机空间 */
+      #tuanjie-footer {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <div id="tuanjie-container" class="tuanjie-desktop">
-      <canvas id="tuanjie-canvas" width=1920 height=1080 tabindex="-1"></canvas>
+      <canvas
+        id="tuanjie-canvas"
+        width="1920"
+        height="1080"
+        tabindex="-1"
+      ></canvas>
       <div id="tuanjie-loading-bar">
         <div id="tuanjie-logo"></div>
         <div id="tuanjie-progress-bar-empty">
           <div id="tuanjie-progress-bar-full"></div>
         </div>
       </div>
-      <div id="tuanjie-warning"> </div>
+      <div id="tuanjie-warning"></div>
       <div id="tuanjie-footer">
         <div id="tuanjie-webgl-logo"></div>
         <div id="tuanjie-fullscreen-button"></div>
         <div id="tuanjie-build-title">My project (1)</div>
       </div>
     </div>
-	
-	
-    <script>
 
+    <script>
       var container = document.querySelector("#tuanjie-container");
       var canvas = document.querySelector("#tuanjie-canvas");
       var loadingBar = document.querySelector("#tuanjie-loading-bar");
-      var progressBarFull = document.querySelector("#tuanjie-progress-bar-full");
-      var fullscreenButton = document.querySelector("#tuanjie-fullscreen-button");
+      var progressBarFull = document.querySelector(
+        "#tuanjie-progress-bar-full",
+      );
+      var fullscreenButton = document.querySelector(
+        "#tuanjie-fullscreen-button",
+      );
       var warningBanner = document.querySelector("#tuanjie-warning");
 
       // Shows a temporary message banner/ribbon for a few seconds, or
@@ -42,15 +70,18 @@
       // user.
       function unityShowBanner(msg, type) {
         function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+          warningBanner.style.display = warningBanner.children.length
+            ? "block"
+            : "none";
         }
-        var div = document.createElement('div');
+        var div = document.createElement("div");
         div.innerHTML = msg;
         warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        if (type == "error") div.style = "background: red; padding: 10px;";
         else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
+          if (type == "warning")
+            div.style = "background: yellow; padding: 10px;";
+          setTimeout(function () {
             warningBanner.removeChild(div);
             updateBannerVisibility();
           }, 5000);
@@ -59,11 +90,11 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/6.27itch2.loader.js";
+      var loaderUrl = buildUrl + "/6.28.loader.js";
       var config = {
-        dataUrl: buildUrl + "/6.27itch2.data",
-        frameworkUrl: buildUrl + "/6.27itch2.framework.js",
-        codeUrl: buildUrl + "/6.27itch2.wasm",
+        dataUrl: buildUrl + "/6.28.data",
+        frameworkUrl: buildUrl + "/6.28.framework.js",
+        codeUrl: buildUrl + "/6.28.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "My project (1)",
@@ -90,21 +121,28 @@
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile device style: fill the whole browser client area with the game canvas:
 
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
+        var meta = document.createElement("meta");
+        meta.name = "viewport";
+        meta.content =
+          "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+        document.getElementsByTagName("head")[0].appendChild(meta);
         container.className = "tuanjie-mobile";
         canvas.className = "tuanjie-mobile";
+        // 【关键修改】强制设置 Canvas 尺寸为窗口尺寸，解决横屏变小问题
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+
+        // 监听屏幕旋转，重新调整尺寸
+        window.addEventListener("resize", function () {
+          canvas.style.width = window.innerWidth + "px";
+          canvas.style.height = window.innerHeight + "px";
+        });
 
         // To lower canvas resolution on mobile devices to gain some
         // performance, uncomment the following line:
         // config.devicePixelRatio = 1;
-
-
       } else {
         // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
         canvas.style.width = "960px";
         canvas.style.height = "540px";
       }
@@ -116,18 +154,19 @@
       script.onload = () => {
         createTuanjieInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
-              }).then((tuanjieInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  tuanjieInstance.SetFullscreen(1);
-                };
-              }).catch((message) => {
-                alert(message);
-              });
+        })
+          .then((tuanjieInstance) => {
+            loadingBar.style.display = "none";
+            fullscreenButton.onclick = () => {
+              tuanjieInstance.SetFullscreen(1);
             };
+          })
+          .catch((message) => {
+            alert(message);
+          });
+      };
 
       document.body.appendChild(script);
-
     </script>
   </body>
 </html>
